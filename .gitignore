@@ -1,0 +1,22 @@
+# Environnement virtuel
+.venv/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+
+# Variables d'environnement
+.env
+
+# VS Code
+.vscode/
+
+# Index FAISS généré
+faiss_index/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
