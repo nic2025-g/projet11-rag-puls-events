@@ -33,4 +33,3 @@ for name, module in packages:
 
 print()
 print("Smoke test terminé.")
-
