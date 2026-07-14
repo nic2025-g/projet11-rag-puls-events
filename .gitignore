@@ -21,7 +21,9 @@ faiss_index/
 .DS_Store
 Thumbs.db
 
+# Variables d'environnement:
 # Pour ignorer certains fichiers comme local, dev, ... 
 # et ne pas ignorer env.exemple pour etre versionné
+.env
 .env.*
 !.env.example
