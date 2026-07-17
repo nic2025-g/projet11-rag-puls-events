@@ -27,3 +27,21 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Données OpenAgenda brutes et transformées : régénérables via les scripts,
+# volumineuses, jamais versionnées
+data/raw/*.json
+data/processed/*.json
+
+# L'échantillon de test, lui, reste versionné (petit, stable, sert de fixture)
+!data/samples/
+
+# Données OpenAgenda brutes et transformées : régénérables via les scripts,
+# volumineuses, jamais versionnées
+data/raw/*.json
+data/processed/*.json
+
+# Fichiers verrou temporaires de Microsoft Office
+~$*.docx
+~$*.xlsx
+~$*.pptx
