@@ -1,115 +1,243 @@
 """
-Feature 2 : Récupération des événements OpenAgenda.
+Feature 2 : récupération des événements OpenAgenda.
 
-Ce script interroge l'API OpenAgenda et sauvegarde les événements
-dans le dossier data/raw.
+Ce script interroge plusieurs agendas OpenAgenda (multi-sources), récupère
+tous leurs événements avec pagination, fusionne et déduplique le résultat,
+puis le sauvegarde dans data/raw.
 """
 
-import os
 import json
-import requests
+import os
+import sys
 import time
+from pathlib import Path
+from typing import Any
 
+import requests
 from dotenv import load_dotenv
 
-#===========================================================================
-# 1.  Reconnaissance de la clé API
-#===========================================================================
+# ===========================================================================
+# 0. Configuration
+# ===========================================================================
 
-# Charger les variables d'environnement
-load_dotenv()
+AGENDAS = [
+    {"uid": 21769447, "name": "Aix-Marseille-Provence Métropole"},
+    {"uid": 2119473, "name": "Musées de Marseille"},
+    {"uid": 65135660, "name": "gmem-CNCM-marseille"},
+]
 
-# Lire la clé API
-API_KEY = os.getenv("OPENAGENDA_API_KEY")
-
-# Vérification
-if API_KEY:
-    print("✅ Clé API chargée avec succès.")
-else:
-    print("❌ Clé API introuvable.")
-
-#===========================================================================
-# 2.  Communication avec l'API
-#===========================================================================
-
-# UID de l'agenda ciblé (Aix-Marseille-Provence Métropole)
-AGENDA_UID = 21769447
-
-# URL de l'API OpenAgenda -- on cible maintenant les évènements d'UN agenda précis
-url = f"https://api.openagenda.com/v2/agendas/{AGENDA_UID}/events"
-
-# Paramètres de la requête
-params = {
-    "size": 5
-}
-
-# En-tête HTTP contenant la clé API
-headers = {
-    "key": API_KEY
-}
-
-print("\nConnexion à l'API OpenAgenda...")
-
-# Envoi de la requête
-
-# Nombre de tentatives avant d'abandonner
+TAILLE_PAGE = 100
 MAX_TENTATIVES = 5
-DELAI_ATTENTE = 10  # secondes entre deux tentatives
+DELAI_ATTENTE = 10
+TIMEOUT_REQUETE = 30
 
-response = None
-for tentative in range(1, MAX_TENTATIVES + 1):
-    print(f"\nConnexion à l'API OpenAgenda... (tentative {tentative}/{MAX_TENTATIVES})")
-    response = requests.get(
-    url,
-    headers=headers,
-    params=params,
-    timeout=30,
-)
-    print(f"Code HTTP : {response.status_code}")
+CHEMIN_SORTIE = Path("data/raw/events_multisources_raw.json")
 
-    if response.status_code == 200:
-        print("✅ Connexion à l'API réussie.")
-        break
-    else:
-        print(f"❌ Erreur HTTP : {response.status_code}")
-        if tentative < MAX_TENTATIVES:
-            print(f"Nouvelle tentative dans {DELAI_ATTENTE} secondes...")
-            time.sleep(DELAI_ATTENTE)
 
-response.raise_for_status()
+# ===========================================================================
+# 1. Chargement de la clé API
+# ===========================================================================
 
-print(f"Code HTTP : {response.status_code}")
+def charger_cle_api() -> str:
+    """Charge et vérifie la présence de la clé API OpenAgenda."""
 
-if response.status_code == 200:
-    print("✅ Connexion à l'API réussie.")
-else:
-    print(f"❌ Erreur HTTP : {response.status_code}")
+    load_dotenv()
+    api_key = os.getenv("OPENAGENDA_API_KEY")
 
-if response.status_code != 200:
-    print("\n❌ Impossible de contacter OpenAgenda après plusieurs tentatives.")
-    exit()
+    if not api_key:
+        print("❌ Variable OPENAGENDA_API_KEY introuvable.")
+        print("Vérifie la présence de la clé dans le fichier .env.")
+        sys.exit(1)
 
-#===========================================================================
-# 3.  Récupration des agendas
-#===========================================================================
+    print("✅ Clé API chargée avec succès.")
+    return api_key
 
-data = response.json()
 
-print(f"Nombre total d'événements dans cet agenda : {data['total']}")
+# ===========================================================================
+# 2. Récupération d'une page
+# ===========================================================================
 
-for event in data["events"]:
-    titre = event.get("title", {}).get("fr", "Titre inconnu")
-    ville = event.get("location", {}).get("city", "Ville inconnue")
-    debut = event.get("firstTiming", {}).get("begin", "Date inconnue")
-    print(f"- {titre} | {ville} | à partir du {debut}")
+def recuperer_page(
+    session: requests.Session,
+    url_api: str,
+    headers: dict[str, str],
+    params: dict[str, Any],
+    numero_page: int,
+) -> dict[str, Any]:
+    """Interroge l'API pour une page donnée, avec plusieurs tentatives en cas d'erreur."""
 
-#===========================================================================
-# 4.  Sauvegarde des événements bruts
-#===========================================================================
+    for tentative in range(1, MAX_TENTATIVES + 1):
+        try:
+            response = session.get(
+                url_api,
+                headers=headers,
+                params=params,
+                timeout=TIMEOUT_REQUETE,
+            )
+            response.raise_for_status()
+            return response.json()
 
-os.makedirs("data/raw", exist_ok=True)
+        except requests.exceptions.RequestException as erreur:
+            print(f"⚠️ Page {numero_page}, tentative {tentative}/{MAX_TENTATIVES} : {erreur}")
+            if tentative < MAX_TENTATIVES:
+                print(f"   Nouvelle tentative dans {DELAI_ATTENTE} secondes...")
+                time.sleep(DELAI_ATTENTE)
 
-with open("data/raw/events_marseille_raw.json", "w", encoding="utf-8") as f:
-    json.dump(data["events"], f, ensure_ascii=False, indent=2)
+    raise RuntimeError(f"Impossible de récupérer la page {numero_page} après {MAX_TENTATIVES} tentatives.")
 
-print(f"\n✅ {len(data['events'])} événements sauvegardés dans data/raw/events_marseille_raw.json")
+
+# ===========================================================================
+# 3. Pagination complète pour UN agenda
+# ===========================================================================
+
+def recuperer_tous_les_evenements(
+    api_key: str,
+    agenda_uid: int,
+) -> tuple[list[dict[str, Any]], int | None]:
+    """Récupère tous les événements d'un agenda donné, avec pagination par curseur."""
+
+    url_api = f"https://api.openagenda.com/v2/agendas/{agenda_uid}/events"
+
+    tous_les_evenements: list[dict[str, Any]] = []
+    headers = {"key": api_key}
+    after_cursor = None
+    numero_page = 1
+    total_api = None
+
+    with requests.Session() as session:
+        while True:
+            params: dict[str, Any] = {"size": TAILLE_PAGE, "detailed": 1}
+            if after_cursor:
+                params["after[]"] = after_cursor
+
+            data = recuperer_page(
+                session=session,
+                url_api=url_api,
+                headers=headers,
+                params=params,
+                numero_page=numero_page,
+            )
+
+            evenements_page = data.get("events", [])
+
+            if total_api is None:
+                total_api = data.get("total")
+
+            if not evenements_page:
+                break
+
+            tous_les_evenements.extend(evenements_page)
+
+            print(
+                f"  Page {numero_page:>2} : {len(evenements_page):>3} événements reçus "
+                f"(total cumulé : {len(tous_les_evenements)})"
+            )
+
+            after_cursor = data.get("after")
+            if not after_cursor:
+                break
+            if total_api and len(tous_les_evenements) >= total_api:
+                break
+
+            numero_page += 1
+
+    return tous_les_evenements, total_api
+
+
+# ===========================================================================
+# 4. Collecte multi-sources : fusion + déduplication
+# ===========================================================================
+
+def collecter_toutes_les_sources(api_key: str) -> list[dict[str, Any]]:
+    """Interroge chaque agenda de la liste AGENDAS, fusionne et déduplique par uid."""
+
+    evenements_par_source: dict[str, list[dict[str, Any]]] = {}
+
+    for agenda in AGENDAS:
+        print(f"\n--- Agenda : {agenda['name']} (UID {agenda['uid']}) ---")
+
+        evenements, total_api = recuperer_tous_les_evenements(api_key, agenda["uid"])
+
+        for evenement in evenements:
+            evenement["_source_agenda"] = agenda["name"]
+
+        evenements_par_source[agenda["name"]] = evenements
+
+        print(
+            f"✅ {agenda['name']} : {len(evenements)} événements récupérés"
+            + (f" (total API : {total_api})" if total_api is not None else "")
+        )
+
+    tous_les_evenements = [
+        evenement
+        for liste in evenements_par_source.values()
+        for evenement in liste
+    ]
+
+    print(f"\nTotal avant déduplication : {len(tous_les_evenements)}")
+
+    evenements_dedupliques: dict[Any, dict[str, Any]] = {}
+    for evenement in tous_les_evenements:
+        uid = evenement.get("uid")
+        if uid not in evenements_dedupliques:
+            evenements_dedupliques[uid] = evenement
+
+    resultat = list(evenements_dedupliques.values())
+
+    print(
+        f"Total après déduplication : {len(resultat)} "
+        f"({len(tous_les_evenements) - len(resultat)} doublons supprimés)"
+    )
+
+    return resultat
+
+
+# ===========================================================================
+# 5. Sauvegarde
+# ===========================================================================
+
+def sauvegarder_evenements(evenements: list[dict[str, Any]], chemin_sortie: Path) -> None:
+    """Sauvegarde les événements au format JSON, via une écriture atomique."""
+
+    chemin_sortie.parent.mkdir(parents=True, exist_ok=True)
+    chemin_temporaire = chemin_sortie.with_suffix(".tmp")
+
+    with chemin_temporaire.open("w", encoding="utf-8") as fichier:
+        json.dump(evenements, fichier, ensure_ascii=False, indent=2)
+
+    chemin_temporaire.replace(chemin_sortie)
+
+
+# ===========================================================================
+# 6. Programme principal
+# ===========================================================================
+
+def main() -> None:
+    """Exécute la collecte multi-sources complète."""
+
+    print("=" * 60)
+    print("COLLECTE OPENAGENDA MULTI-SOURCES")
+    print("=" * 60)
+    for agenda in AGENDAS:
+        print(f"- {agenda['name']} (UID {agenda['uid']})")
+
+    api_key = charger_cle_api()
+
+    try:
+        evenements = collecter_toutes_les_sources(api_key)
+    except RuntimeError as erreur:
+        print(f"\n❌ Échec de la collecte : {erreur}")
+        sys.exit(1)
+
+    if not evenements:
+        print("\n❌ Aucun événement récupéré. Le fichier ne sera pas écrasé.")
+        sys.exit(1)
+
+    sauvegarder_evenements(evenements, CHEMIN_SORTIE)
+
+    print(f"\n✅ Fichier sauvegardé : {CHEMIN_SORTIE}")
+    print(f"✅ Nombre de documents (après fusion et déduplication) : {len(evenements)}")
+
+
+if __name__ == "__main__":
+    main()
