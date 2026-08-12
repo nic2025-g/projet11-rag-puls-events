@@ -73,6 +73,18 @@ def nettoyer_texte(valeur: Any) -> str:
 
     # Réduit les espaces multiples
     texte = re.sub(r"\s+", " ", texte)
+    
+    # Supprimer les antislashs Markdown répétés
+    texte = re.sub(r"\\+", " ", texte)
+
+    # Supprimer les titres Markdown
+    texte = re.sub(r"#{1,6}\s*", "", texte)
+
+    # Supprimer les puces Markdown
+    texte = re.sub(r"\*\s*", "", texte)
+
+    # Transformer les liens Markdown [texte](url) en texte
+    texte = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", texte)
 
     return texte.strip()
 
