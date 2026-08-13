@@ -41,6 +41,12 @@ data/processed/*.json
 data/raw/*.json
 data/processed/*.json
 
+# Vecteurs d'embeddings : volumineux, régénérables via generate_embeddings.py
+data/processed/*.npy
+
+# Journaux de bord : conservés en local uniquement, non versionnés
+docs/journal_de_bord_*.docx
+
 # Fichiers verrou temporaires de Microsoft Office
 ~$*.docx
 ~$*.xlsx
