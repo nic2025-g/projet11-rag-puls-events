@@ -84,8 +84,7 @@ def dedupliquer_par_evenement(
 
     return resultats
 
-
-def main() -> None:
+# def main() -> None:
     # -----------------------------------------------------------------------
     # Requête utilisateur
     # -----------------------------------------------------------------------
@@ -130,7 +129,7 @@ def main() -> None:
     # -----------------------------------------------------------------------
     # Chargement FAISS + métadonnées
     # -----------------------------------------------------------------------
-
+"""
     index = faiss.read_index(
         str(CHEMIN_INDEX)
     )
@@ -217,7 +216,115 @@ def main() -> None:
             f"\n⚠️ Seulement {len(resultats)} événements distincts trouvés "
             f"sur {TOP_K} demandés (corpus limité ou requête peu couverte)."
         )
+"""
+
+#===========================================================================
+# Chargement des ressources (mis en cache au niveau du module)
+#===========================================================================
+
+_client = None
+_index = None
+_metadata = None
 
 
+def _charger_ressources() -> tuple[Mistral, faiss.Index, list[dict]]:
+    """
+    Charge le client Mistral, l'index FAISS et les métadonnées une seule
+    fois, puis les réutilise sur les appels suivants -- évite de relire
+    l'index et les métadonnées depuis le disque à chaque requête.
+    """
+
+    global _client, _index, _metadata
+
+    if _client is None:
+        load_dotenv()
+        api_key = os.getenv("MISTRAL_API_KEY")
+        if not api_key:
+            raise ValueError("MISTRAL_API_KEY introuvable dans le fichier .env.")
+        _client = Mistral(api_key=api_key)
+
+    if _index is None or _metadata is None:
+        if not CHEMIN_INDEX.exists():
+            raise FileNotFoundError(f"Index FAISS introuvable : {CHEMIN_INDEX}")
+        if not CHEMIN_METADATA.exists():
+            raise FileNotFoundError(f"Métadonnées introuvables : {CHEMIN_METADATA}")
+
+        _index = faiss.read_index(str(CHEMIN_INDEX))
+        with CHEMIN_METADATA.open("r", encoding="utf-8-sig") as fichier:
+            _metadata = json.load(fichier)
+
+        if _index.ntotal != len(_metadata):
+            raise RuntimeError(
+                f"Incohérence : {_index.ntotal} vecteurs FAISS "
+                f"pour {len(_metadata)} métadonnées."
+            )
+
+    return _client, _index, _metadata
+
+
+#===========================================================================
+# Fonction publique réutilisable
+#===========================================================================
+
+def rechercher_evenements(
+    requete: str,
+    top_k: int = TOP_K,
+) -> list[dict]:
+    
+    """
+    Recherche les top_k événements les plus pertinents pour une requête
+    textuelle, dédupliqués par uid et par titre.
+
+    C'est le point d'entrée destiné à être appelé depuis d'autres modules
+    (notamment rag_chain.py) -- contrairement à main(), elle ne fait
+    aucun affichage, elle retourne directement les résultats.
+    """
+
+    requete = requete.strip()
+
+    if not requete:
+        raise ValueError("La requête ne peut pas être vide.")
+
+    if top_k <= 0:
+        raise ValueError("top_k doit être strictement positif.")
+    
+    client, index, metadata = _charger_ressources()
+    
+    if index.ntotal == 0:
+            return []
+
+    reponse = client.embeddings.create(model=MODELE_EMBEDDING, inputs=[requete])
+    vecteur = np.array([reponse.data[0].embedding], dtype=np.float32)
+    faiss.normalize_L2(vecteur)
+
+    nombre_a_recuperer = min(top_k * FACTEUR_SURECHANTILLONNAGE, index.ntotal)
+    scores, indices = index.search(vecteur, nombre_a_recuperer)
+
+    return dedupliquer_par_evenement(scores[0], indices[0], metadata, top_k)
+
+def main() -> None:
+    requete = (
+        sys.argv[1]
+        if len(sys.argv) > 1
+        else "exposition d'art contemporain à Marseille"
+    )
+
+    top_k = TOP_K
+    resultats = rechercher_evenements(requete, top_k=top_k)
+
+    print(f"\nRequête : « {requete} »\n" + "=" * 60)
+
+    for rang, resultat in enumerate(resultats, start=1):
+        print(f"\n{rang}. {resultat['titre']} (score : {resultat['score_similarite']:.4f})")
+        print(f"   Chunk ID : {resultat['chunk_id']}")
+        print(f"   Lieu     : {resultat.get('lieu', '')}")
+        print(f"   {resultat['texte'][:200]}...")
+    
+    if len(resultats) < top_k:
+        print(
+            f"\n⚠️ Seulement {len(resultats)} événements distincts "
+            f"trouvés sur {top_k} demandés."
+        )
+    
 if __name__ == "__main__":
     main()
