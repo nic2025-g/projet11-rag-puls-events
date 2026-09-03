@@ -1,0 +1,9 @@
+﻿categorie;nombre_cas;score_moyen;pourcentage
+filtre_lieu;2;1.0;100.0
+filtre_lieu_type;1;1.0;100.0
+filtre_public;1;1.0;100.0
+filtre_tarif;1;1.0;100.0
+filtre_temporel;2;1.0;100.0
+filtre_thematique;1;1.0;100.0
+hors_perimetre;1;0.67;67.0
+question_ouverte;1;0.5;50.0
