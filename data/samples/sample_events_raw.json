@@ -1,0 +1,77 @@
+[
+  {
+    "uid": 24926764,
+    "title": {
+      "fr": "WHAT REMAINS Ce qui reste et ce qu\u2019on laisse \u2013 Ghita Skali"
+    },
+    "description": {
+      "fr": "Dans le cadre de la 4\u00e8me \u00e9dition des Rencontres Art, Soin, Citoyennet\u00e9"
+    },
+    "location": {
+      "city": "Aix-en-Provence",
+      "name": "CAC - 3 bis f",
+      "address": "109 avenue du Petit Barth\u00e9l\u00e9my, 13100 Aix-en-Provence, France",
+      "latitude": 43.526979,
+      "longitude": 5.443157
+    },
+    "firstTiming": {
+      "begin": "2026-05-26T14:00:00.000+02:00",
+      "end": "2026-05-26T18:00:00.000+02:00"
+    },
+    "lastTiming": {
+      "begin": "2026-09-19T14:00:00.000+02:00",
+      "end": "2026-09-19T21:00:00.000+02:00"
+    },
+    "slug": "exposition-what-remains-ce-qui-reste-et-ce-quon-laisse-ghita-skali"
+  },
+  {
+    "uid": 18062735,
+    "title": {
+      "fr": "L'\u00cELE EN FETE"
+    },
+    "description": {
+      "fr": "Organis\u00e9 par les cafetiers/restaurateurs de la place de la Lib\u00e9ration en collaboration avec l'Association des commer\u00e7ants LES VITRINES MARTEGALES"
+    },
+    "location": {
+      "city": "Martigues",
+      "name": "Place de la Lib\u00e9ration",
+      "address": "Place de la Lib\u00e9ration, Martigues",
+      "latitude": 43.404967,
+      "longitude": 5.054545
+    },
+    "firstTiming": {
+      "begin": "2026-07-07T20:00:00.000+02:00",
+      "end": "2026-07-07T23:30:00.000+02:00"
+    },
+    "lastTiming": {
+      "begin": "2026-08-29T20:00:00.000+02:00",
+      "end": "2026-08-29T23:30:00.000+02:00"
+    },
+    "slug": "lile-en-fete"
+  },
+  {
+    "uid": 45424319,
+    "title": {
+      "fr": "Dormir comme le soleil"
+    },
+    "description": {
+      "fr": "En 2026, les Mus\u00e9es de Marseille invitent l\u2019artiste Adrien Vescovi \u00e0 investir le Centre de la Vieille Charit\u00e9. Pour la chapelle, ainsi que pour l\u2019ensemble des coursives du site, l\u2019artiste con\u00e7oit une installation in\u00e9dite \u00e0 l\u2019\u00e9chelle du monument dessin\u00e9 par Pierre Puget au 17e si\u00e8cle."
+    },
+    "location": {
+      "city": "Marseille",
+      "name": "Centre de la Vieille Charit\u00e9",
+      "address": "2 Rue de la charite, 13002 Marseille, France",
+      "latitude": 43.300135,
+      "longitude": 5.3678
+    },
+    "firstTiming": {
+      "begin": "2026-05-16T09:00:00.000+02:00",
+      "end": "2026-05-16T18:00:00.000+02:00"
+    },
+    "lastTiming": {
+      "begin": "2027-01-10T09:00:00.000+01:00",
+      "end": "2027-01-10T18:00:00.000+01:00"
+    },
+    "slug": "dormir-comme-le-soleil"
+  }
+]

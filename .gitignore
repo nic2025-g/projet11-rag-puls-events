@@ -20,3 +20,34 @@ faiss_index/
 # Fichiers système
 .DS_Store
 Thumbs.db
+
+# Variables d'environnement:
+# Pour ignorer certains fichiers comme local, dev, ... 
+# et ne pas ignorer env.exemple pour etre versionné
+.env
+.env.*
+!.env.example
+
+# Données OpenAgenda brutes et transformées : régénérables via les scripts,
+# volumineuses, jamais versionnées
+data/raw/*.json
+data/processed/*.json
+
+# L'échantillon de test, lui, reste versionné (petit, stable, sert de fixture)
+!data/samples/
+
+# Données OpenAgenda brutes et transformées : régénérables via les scripts,
+# volumineuses, jamais versionnées
+data/raw/*.json
+data/processed/*.json
+
+# Vecteurs d'embeddings : volumineux, régénérables via generate_embeddings.py
+data/processed/*.npy
+
+# Journaux de bord : conservés en local uniquement, non versionnés
+docs/journal_de_bord_*.docx
+
+# Fichiers verrou temporaires de Microsoft Office
+~$*.docx
+~$*.xlsx
+~$*.pptx
