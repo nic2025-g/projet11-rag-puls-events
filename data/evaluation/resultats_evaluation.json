@@ -1,0 +1,202 @@
+{
+  "date_evaluation": "2026-08-21T14:58:48.979189",
+  "nombre_cas": 10,
+  "resultats": [
+    {
+      "id": 1,
+      "categorie": "filtre_tarif",
+      "question": "Je cherche une exposition gratuite",
+      "date_reference": "2026-08-20",
+      "reponse_reference": "La réponse doit proposer uniquement des expositions dont la gratuité est explicitement confirmée, avec le lieu et la date.",
+      "criteres_attendus": [
+        "La réponse mentionne au moins un événement du type exposition",
+        "La gratuité est explicitement confirmée dans la réponse, pas supposée",
+        "Le lieu et la date de l'exposition sont indiqués"
+      ],
+      "reponse_generee": "Voici des expositions gratuites à Marseille ce week-end (19 et 20 septembre 2026) :\n\n1. **Expositions en accès libre** au Mucem\n   *Lieu : Mucem - Musée des civilisations de l'Europe et de la Méditerranée, Promenade Robert Laffont, 13002 Marseille*\n   *Dates : 19/09/2026 (10h-19h) et 20/09/2026 (10h-19h)*\n\n2. **Expositions gratuites au Mucem !**\n   *Lieu : Mucem - Musée des civilisations de l'Europe et de la Méditerranée, Promenade Robert Laffont, 13002 Marseille*\n   *Dates : 19/09/2026 (10h-18h) et 20/09/2026 (10h-18h)*\n\n3. **Friche la Belle de Mai : les expositions d'art contemporain**\n   *Lieu : Friche la Belle de Mai, 41 rue Jobin, 13003 Marseille*\n   *Dates : 19/09/2026 (14h-19h) et 20/09/2026 (14h-19h)*\n\n4. **Visite de l'exposition NOUS, Sorcière & Sauvage**\n   *Lieu : Bibliothèque départementale des Bouches-du-Rhône, 20 rue Mirès, 13003 Marseille*\n   *Dates : 19/09/2026 et 20/09/2026 (9h-18h)*",
+      "criteres_valides": [
+        "La réponse mentionne au moins un événement du type exposition",
+        "La gratuité est explicitement confirmée dans la réponse, pas supposée",
+        "Le lieu et la date de l'exposition sont indiqués"
+      ],
+      "criteres_non_valides": [],
+      "score_manuel": 1.0,
+      "commentaire_evaluateur": "La réponse propose plusieurs expositions, confirme explicitement leur gratuité et fournit le lieu ainsi que les dates."
+    },
+    {
+      "id": 2,
+      "categorie": "filtre_thematique",
+      "question": "Je veux voir de la danse contemporaine",
+      "date_reference": "2026-08-20",
+      "reponse_reference": "La réponse doit proposer les événements pour lesquels la danse contemporaine est explicitement confirmée, avec leur lieu et leur date.",
+      "criteres_attendus": [
+        "La réponse distingue les événements confirmant explicitement 'danse contemporaine' de ceux qui n'évoquent que des performances proches",
+        "Aucun événement n'est présenté comme certain s'il ne l'est pas dans le contexte"
+      ],
+      "reponse_generee": "Aucun événement ne correspond à de la danse contemporaine dans le contexte fourni.\n\nLes événements disponibles sont :\n- \"Restitution de la performance \"Créatures : la monstruosité en mouvement, entre photographie et performance\"\" (Ballet national de Marseille, 21/05/2027) – performance mêlant photographie et mouvement\n- \"Pleine Lune\" (Mucem, 02/07/2026) – spectacle musical et chorégraphique mêlant mahraganat, arts martiaux et danse contemporaine (mais pas uniquement de la danse contemporaine)\n\nSi vous souhaitez une expérience proche de la danse contemporaine, \"Pleine Lune\" au Mucem le 2 juillet 2026 pourrait vous intéresser.",
+      "criteres_valides": [
+        "La réponse distingue les événements confirmant explicitement 'danse contemporaine' de ceux qui n'évoquent que des performances proches",
+        "Aucun événement n'est présenté comme certain s'il ne l'est pas dans le contexte"
+      ],
+      "criteres_non_valides": [],
+      "score_manuel": 1.0,
+      "commentaire_evaluateur": "Nuance exemplaire : 'Pleine Lune' proposé avec la réserve explicite 'pas de la danse contemporaine au sens strict'. Plus aucune invention de source externe après renforcement du prompt."
+    },
+    {
+      "id": 3,
+      "categorie": "filtre_lieu",
+      "question": "Que puis-je faire au Mucem ?",
+      "date_reference": "2026-08-20",
+      "reponse_reference": "La réponse doit proposer les activités du corpus ayant lieu au Mucem, avec leurs dates et les informations disponibles.",
+      "criteres_attendus": [
+        "La réponse liste plusieurs activités si le corpus en contient plusieurs",
+        "Le nom du lieu correspond bien au Mucem, pas à un autre musée"
+      ],
+      "reponse_generee": "Voici ce que tu peux faire au **Mucem** dans le contexte fourni :\n\n1. **Expositions gratuites au Mucem !**\n   *Lieu* : Mucem - Musée des civilisations de l'Europe et de la Méditerranée\n   *Dates* : 19/09/2026 (10h-18h) et 20/09/2026 (10h-18h)\n   *Info* : Expositions permanentes (\"Populaire ?\", \"Méditerranées\") et temporaires (\"Mossi Traoré, la mode aussi\", \"Clément Cogitore\").\n\n2. **Expositions en accès libre**\n   *Lieu* : Mucem - Musée des civilisations de l'Europe et de la Méditerranée\n   *Dates* : 19/09/2026 (10h-19h) et 20/09/2026 (10h-19h)\n   *Info* : Accès gratuit aux expositions du J4 et du Fort Saint-Jean pendant les Journées européennes du patrimoine.\n\n3. **Le petit séminaire**\n   *Lieu* : Mucem - Musée des civilisations de l'Europe et de la Méditerranée\n   *Dates* : 24/10/2026 (17h-21h) au 18/04/2027\n   *Info* : Travail documentaire mêlant images contemporaines et archives.",
+      "criteres_valides": [
+        "La réponse liste plusieurs activités si le corpus en contient plusieurs",
+        "Le nom du lieu correspond bien au Mucem, pas à un autre musée"
+      ],
+      "criteres_non_valides": [],
+      "score_manuel": 1.0,
+      "commentaire_evaluateur": "Trois activités listées, toutes bien rattachées au Mucem, avec dates et détails cohérents."
+    },
+    {
+      "id": 4,
+      "categorie": "filtre_public",
+      "question": "Je cherche une activité pour enfants",
+      "date_reference": "2026-08-20",
+      "reponse_reference": "La réponse doit proposer uniquement les activités explicitement adaptées aux enfants ou aux familles, avec leur lieu et leur date.",
+      "criteres_attendus": [
+        "Seuls les événements dont le public jeune/familial est explicitement mentionné sont proposés",
+        "La réponse ne propose pas d'événement pour adultes non qualifié comme familial"
+      ],
+      "reponse_generee": "Voici une activité adaptée pour les enfants :\n\n**Les crottes, d'hier à demain**\nLieu : Fronton, 97 rue de Lyon 13015 Marseille\nDate : Samedi 19 septembre 2026, de 10h30 à 12h30\n\nUn atelier ludique et familial pour découvrir le quartier des Crottes, idéalement pour les enfants à partir de 7 ans.",
+      "criteres_valides": [
+        "Seuls les événements dont le public jeune/familial est explicitement mentionné sont proposés",
+        "La réponse ne propose pas d'événement pour adultes non qualifié comme familial"
+      ],
+      "criteres_non_valides": [],
+      "score_manuel": 1.0,
+      "commentaire_evaluateur": "Un seul événement proposé, explicitement qualifié pour les 7 ans et plus. Réponse courte mais fondée."
+    },
+    {
+      "id": 5,
+      "categorie": "filtre_temporel",
+      "question": "Y a-t-il un concert demain soir ?",
+      "date_reference": "2026-08-20",
+      "reponse_reference": "La réponse doit vérifier les événements du 21/08/2026 au soir. S'il n'y a aucun concert ce jour-là, elle doit le dire clairement",
+      "criteres_attendus": [
+        "La réponse raisonne correctement sur la date relative 'demain' par rapport à la date du jour",
+        "Si aucun concert n'a lieu à cette date précise, la réponse le dit clairement plutôt que de proposer des concerts à d'autres dates comme réponse valide"
+      ],
+      "reponse_generee": "Non, il n'y a pas de concert demain soir (21 août 2026).\n\nAucun événement n'est prévu à cette date dans le contexte fourni.",
+      "criteres_valides": [
+        "La réponse raisonne correctement sur la date relative 'demain' par rapport à la date du jour",
+        "Si aucun concert n'a lieu à cette date précise, la réponse le dit clairement plutôt que de proposer des concerts à d'autres dates comme réponse valide"
+      ],
+      "criteres_non_valides": [],
+      "score_manuel": 1.0,
+      "commentaire_evaluateur": "La date du 21/08/2026 est correctement déduite et l'absence de concert est affirmée sans ambiguïté."
+    },
+    {
+      "id": 6,
+      "categorie": "filtre_lieu_type",
+      "question": "Je cherche un concert de musique en plein air",
+      "date_reference": "2026-08-20",
+      "reponse_reference": "La réponse doit proposer des événements musicaux et ne confirmer le caractère 'en plein air' que lorsque cette information est explicitement présente dans le contexte.",
+      "criteres_attendus": [
+        "La réponse signale que le critère 'plein air' n'est pas confirmé si le contexte ne le précise pas",
+        "Les événements proposés restent thématiquement liés à la musique"
+      ],
+      "reponse_generee": "Aucun concert en plein air n'est prévu dans les événements disponibles.",
+      "criteres_valides": [
+        "La réponse signale que le critère 'plein air' n'est pas confirmé si le contexte ne le précise pas",
+        "Les événements proposés restent thématiquement liés à la musique"
+      ],
+      "criteres_non_valides": [],
+      "score_manuel": 1.0,
+      "commentaire_evaluateur": "Aucun événement ne satisfaisant simultanément les critères musique et plein air n'est proposé. Le système préfère signaler l'absence de résultat plutôt que recommander un événement approximatif."
+    },
+    {
+      "id": 7,
+      "categorie": "filtre_temporel",
+      "question": "Quels événements se déroulent au mois de septembre ?",
+      "date_reference": "2026-08-20",
+      "reponse_reference": "La reponse doit tenir compte de tous les evenements culturels qui doivent avoir lieu en septembre prochain a Marseille ",
+      "criteres_attendus": [
+        "Tous les événements cités ont une période qui chevauche le mois de septembre 2026",
+        "Aucun événement entièrement situé hors du mois de septembre n'est présenté comme correspondant"
+      ],
+      "reponse_generee": "Voici les événements prévus en **septembre** :\n\n- **Fête de la Barquette** – Quai du MACT - Petit train (174 quai du port, 13002 Marseille)\n  *19 et 20 septembre 2026*\n\n- **Kouss.Kouss** – Les grandes Tables de la Friche (41 rue Jobin, 13003 Marseille)\n  *Du 21 août au 6 septembre 2026*",
+      "criteres_valides": [
+        "Tous les événements cités ont bien une date en septembre",
+        "Aucun événement d'un autre mois n'est mentionné comme correspondant"
+      ],
+      "criteres_non_valides": [],
+      "score_manuel": 1.0,
+      "commentaire_evaluateur": "Deux événements corrects. Point mineur : Kouss.Kouss débute en août, mais chevauche bien septembre, donc l'inclusion reste défendable."
+    },
+    {
+      "id": 8,
+      "categorie": "hors_perimetre",
+      "question": "Je cherche un restaurant gastronomique à Marseille",
+      "date_reference": "2026-08-20",
+      "reponse_reference": "Le système doit rester dans son périmètre événementiel. S'il trouve un événement gastronomique organisé dans un restaurant, il peut le signaler, mais ne doit pas le présenter comme une recommandation générale de restaurant.",
+      "criteres_attendus": [
+        "La réponse ne doit pas inventer de restaurant absent du contexte",
+        "Si un événement gastronomique organisé dans un restaurant est présent, la réponse doit préciser qu'il s'agit d'un événement du corpus et non d'une recommandation générale de restaurant",
+        "La réponse reste dans les informations explicitement présentes dans le contexte"
+      ],
+      "reponse_generee": "Aucun événement ne correspond à une proposition gastronomique dans un restaurant pour aujourd'hui. Voici ce qui est disponible dans le contexte :\n\n- **Kouss·Agneau** au Relais 50 (20 Quai du Port, 13002 Marseille) du **1er au 5 septembre 2026** – menu gastronomique en collaboration avec un chef tunisien.\n- **La rue du Kouss·Kouss** au Femina (1 rue du Musée, 13001 Marseille) le **5 septembre 2026** – festival culinaire avec banquet solidaire et spécialités algériennes.",
+      "criteres_valides": [
+        "La réponse ne doit pas inventer de restaurant absent du contexte",
+        "La réponse reste dans les informations explicitement présentes dans le contexte"
+      ],
+      "criteres_non_valides": [
+        "Si un événement gastronomique organisé dans un restaurant est présent, la réponse doit préciser qu'il s'agit d'un événement du corpus et non d'une recommandation générale de restaurant"
+      ],
+      "score_manuel": 0.67,
+      "commentaire_evaluateur": "La réponse précise bien 'pas un restaurant traditionnel', mais présente tout de même Kouss·Agneau comme une suggestion positive plutôt que de refuser franchement de répondre à une demande hors périmètre du corpus."
+    },
+    {
+      "id": 9,
+      "categorie": "filtre_lieu",
+      "question": "Quelles expositions sont visibles à la Friche la Belle de Mai ?",
+      "date_reference": "2026-08-20",
+      "reponse_reference": "La réponse doit présenter les expositions du corpus ayant lieu à la Friche la Belle de Mai, avec leurs dates disponibles.",
+      "criteres_attendus": [
+        "Tous les événements cités ont bien pour lieu la Friche la Belle de Mai",
+        "Le type d'événement (exposition) est respecté"
+      ],
+      "reponse_generee": "Voici les expositions visibles à la Friche la Belle de Mai :\n\n- **Les rêves n’ont pas de titre** (Zineb Sedira)\n- **Jouer la montre** (Mona Benyamin)\n- **Sur les ruines, les pierres fleurissent** (Abdessamad El Montassir)\n- **Sur la frontière du temps, une relève méditerranéenne** (exposition collective)\n- **Autoroute Tanger – Marseille** (exposition collective)\n\nToutes ces expositions sont visibles du **19 septembre 2026 au 20 septembre 2026** à la Friche la Belle de Mai (41 rue Jobin, 13003 Marseille).",
+      "criteres_valides": [
+        "Tous les événements cités ont bien pour lieu la Friche la Belle de Mai",
+        "Le type d'événement (exposition) est respecté"
+      ],
+      "criteres_non_valides": [],
+      "score_manuel": 1.0,
+      "commentaire_evaluateur": "Cinq expositions correctement listées, toutes situées au bon lieu. Aucun événement déjà terminé n'apparaît."
+    },
+    {
+      "id": 10,
+      "categorie": "question_ouverte",
+      "question": "Je veux sortir ce week-end à Marseille, qu'est-ce que vous me conseillez ?",
+      "date_reference": "2026-08-20",
+      "reponse_reference": "Avec une date de référence au 20/08/2026, la réponse doit proposer des événements ayant lieu pendant le week-end proche correspondant et offrir, si possible, une sélection variée.",
+      "criteres_attendus": [
+        "La réponse propose une sélection variée, pas un seul type d'événement",
+        "Les dates proposées correspondent bien à un week-end proche de la date d'exécution"
+      ],
+      "reponse_generee": "Aucun événement n'est prévu ce week-end (23 et 24 août 2026) à Marseille.\n\nEn revanche, voici ce qui est organisé le week-end suivant, les **19 et 20 septembre 2026** :\n\n- **Fête de la Barquette**\n  *Quai du MACT - Petit train*\n  Du 19/09/2026 (10h) au 20/09/2026 (17h)\n  Expositions, embarquement convivial sur le vieux port et vue côté mer.\n\n- **Visite guidée Hôtel de Région**\n  *Hôtel de Région, 27 place Jules Guesde*\n  Du 19/09/2026 (10h) au 20/09/2026 (18h)\n  Découverte de l’histoire du bâtiment, ancienne prison pour femmes.\n\n- **Carnet de balade urbaine \"Marseille moderne\"**\n  *Musée Regards de Provence*\n  Du 18/09/2026 (disponible jusqu’au 20/09/2026)\n  Balade en autonomie avec jeux pour enfants (gratuit).",
+      "criteres_valides": [
+        "La réponse propose une sélection variée, pas un seul type d'événement"
+      ],
+      "criteres_non_valides": [
+        "Les dates proposées correspondent bien à un week-end proche de la date d'exécution"
+      ],
+      "score_manuel": 0.5,
+      "commentaire_evaluateur": "Sélection variée et bien détaillée, mais le calcul du 'prochain week-end' est erroné (annonce 27-28 septembre puis liste des événements du 19-20 septembre) -- limite connue du raisonnement temporel relatif complexe des LLM, à corriger en v2 par un calcul programmatique plutôt que délégué au modèle."
+    }
+  ]
+}

@@ -353,21 +353,69 @@ def main() -> None:
 
     # -----------------------------------------------------------------------
     # Filtrage temporel : événements à venir ou encore en cours
-    # -----------------------------------------------------------------------
-    
+    # -----------------------------------------------------------------------    
+    """
     maintenant = datetime.now(timezone.utc)
     date_debut_periode = maintenant - timedelta(days=NOMBRE_JOURS_PASSES)
     date_fin_periode = maintenant + timedelta(days=NOMBRE_JOURS_FUTURS)
+    """
+    
+    DATE_REFERENCE = datetime.now(timezone.utc)
 
-    date_reference_fin = df["fin_dt"].fillna(df["debut_dt"])
+    DATE_MIN = DATE_REFERENCE - timedelta(days=NOMBRE_JOURS_PASSES)
+    DATE_MAX = DATE_REFERENCE + timedelta(days=NOMBRE_JOURS_FUTURS)
 
+    DATE_REFERENCE = datetime.now(timezone.utc)
+
+    DATE_MIN = DATE_REFERENCE - timedelta(
+        days=NOMBRE_JOURS_PASSES
+    )
+
+    DATE_MAX = DATE_REFERENCE + timedelta(
+        days=NOMBRE_JOURS_FUTURS
+    )
+
+    # Si la date de fin manque, on utilise la date de début.
+    date_reference_fin = df["fin_dt"].fillna(
+        df["debut_dt"]
+    )
+
+    # Un événement est retenu s'il chevauche la fenêtre temporelle.
     masque_periode = (
         df["debut_dt"].notna()
-        & (date_reference_fin >= date_debut_periode)
-        & (df["debut_dt"] <= date_fin_periode)
+        & (date_reference_fin >= DATE_MIN)
+        & (df["debut_dt"] <= DATE_MAX)
     )
 
     df_periode = df.loc[masque_periode].copy()
+    
+    
+    # SAUVEGARDE
+    
+    CHEMIN_CONFIG_PREPROCESSING = Path(
+    "data/processed/preprocessing_metadata.json"
+    )
+
+    config_preprocessing = {
+        "date_reference": DATE_REFERENCE.isoformat(),
+        "ville_cible": VILLE_CIBLE,
+        "nombre_jours_passes": NOMBRE_JOURS_PASSES,
+        "nombre_jours_futurs": NOMBRE_JOURS_FUTURS,
+        "date_min": DATE_MIN.isoformat(),
+        "date_max": DATE_MAX.isoformat(),
+    }
+
+    with CHEMIN_CONFIG_PREPROCESSING.open(
+        "w",
+        encoding="utf-8",
+    ) as fichier:
+        json.dump(
+            config_preprocessing,
+            fichier,
+            ensure_ascii=False,
+            indent=2,
+        )
+    
 
     # -----------------------------------------------------------------------
     # Exclusion des documents inutilisables
@@ -413,7 +461,24 @@ def main() -> None:
     # -----------------------------------------------------------------------
     # Sauvegarde
     # -----------------------------------------------------------------------
+    CHEMIN_CONFIG_PREPROCESSING = Path(
+        "data/processed/preprocessing_metadata.json"
+    )
 
+    CHEMIN_CONFIG_PREPROCESSING.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    
+    config_preprocessing = {
+        "date_reference": DATE_REFERENCE.isoformat(),
+        "ville_cible": VILLE_CIBLE,
+        "nombre_jours_passes": NOMBRE_JOURS_PASSES,
+        "nombre_jours_futurs": NOMBRE_JOURS_FUTURS,
+        "date_min": DATE_MIN.isoformat(),
+        "date_max": DATE_MAX.isoformat(),
+    }
+    
     CHEMIN_SORTIE.parent.mkdir(
         parents=True,
         exist_ok=True,
@@ -459,8 +524,8 @@ def main() -> None:
         f"{nb_supprimes_dedoublonnage}"
     )
     print(
-    f"Période retenue                : "
-    f"{date_debut_periode.date()} au {date_fin_periode.date()}"
+        f"Période retenue                : "
+        f"{DATE_MIN.date()} au {DATE_MAX.date()}"
     )
     print(f"Après filtre temporel          : {len(df_periode)}")
     print(f"Événements finaux              : {len(df_final)}")

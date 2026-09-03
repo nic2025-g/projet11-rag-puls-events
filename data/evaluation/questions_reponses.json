@@ -1,0 +1,114 @@
+[
+  {
+    "id": 1,
+    "question": "Je cherche une exposition gratuite",
+    "date_reference": "2026-08-20",
+    "reponse_reference": "La réponse doit proposer uniquement des expositions dont la gratuité est explicitement confirmée, avec le lieu et la date.",
+    "criteres_attendus": [
+      "La réponse mentionne au moins un événement du type exposition",
+      "La gratuité est explicitement confirmée dans la réponse, pas supposée",
+      "Le lieu et la date de l'exposition sont indiqués"
+    ],
+    "categorie": "filtre_tarif"
+  },
+  {
+    "id": 2,
+    "question": "Je veux voir de la danse contemporaine",
+    "date_reference": "2026-08-20",
+    "reponse_reference": "La réponse doit proposer les événements pour lesquels la danse contemporaine est explicitement confirmée, avec leur lieu et leur date.",
+    "criteres_attendus": [
+      "La réponse distingue les événements confirmant explicitement 'danse contemporaine' de ceux qui n'évoquent que des performances proches",
+      "Aucun événement n'est présenté comme certain s'il ne l'est pas dans le contexte"
+    ],
+    "categorie": "filtre_thematique"
+  },
+  {
+    "id": 3,
+    "question": "Que puis-je faire au Mucem ?",
+    "date_reference": "2026-08-20",
+    "reponse_reference": "La réponse doit proposer les activités du corpus ayant lieu au Mucem, avec leurs dates et les informations disponibles.",
+    "criteres_attendus": [
+      "La réponse liste plusieurs activités si le corpus en contient plusieurs",
+      "Le nom du lieu correspond bien au Mucem, pas à un autre musée"
+    ],
+    "categorie": "filtre_lieu"
+  },
+  {
+    "id": 4,
+    "question": "Je cherche une activité pour enfants",
+    "date_reference": "2026-08-20",
+    "reponse_reference": "La réponse doit proposer uniquement les activités explicitement adaptées aux enfants ou aux familles, avec leur lieu et leur date.",
+    "criteres_attendus": [
+      "Seuls les événements dont le public jeune/familial est explicitement mentionné sont proposés",
+      "La réponse ne propose pas d'événement pour adultes non qualifié comme familial"
+    ],
+    "categorie": "filtre_public"
+  },
+  {
+    "id": 5,
+    "question": "Y a-t-il un concert demain soir ?",
+    "date_reference": "2026-08-20",
+    "reponse_reference": "La réponse doit vérifier les événements du 21/08/2026 au soir. S'il n'y a aucun concert ce jour-là, elle doit le dire clairement",
+    "criteres_attendus": [
+      "La réponse raisonne correctement sur la date relative 'demain' par rapport à la date du jour",
+      "Si aucun concert n'a lieu à cette date précise, la réponse le dit clairement plutôt que de proposer des concerts à d'autres dates comme réponse valide"
+    ],
+    "categorie": "filtre_temporel"
+  },
+  {
+    "id": 6,
+    "question": "Je cherche un concert de musique en plein air",
+    "date_reference": "2026-08-20",
+    "reponse_reference": "La réponse doit proposer des événements musicaux et ne confirmer le caractère 'en plein air' que lorsque cette information est explicitement présente dans le contexte.",
+    "criteres_attendus": [
+      "La réponse signale que le critère 'plein air' n'est pas confirmé si le contexte ne le précise pas",
+      "Les événements proposés restent thématiquement liés à la musique"
+    ],
+    "categorie": "filtre_lieu_type"
+  },
+  {
+    "id": 7,
+    "question": "Quels événements se déroulent au mois de septembre ?",
+    "date_reference": "2026-08-20",
+    "reponse_reference": "La reponse doit tenir compte de tous les evenements culturels qui doivent avoir lieu en septembre prochain a Marseille ",
+    "criteres_attendus": [
+      "Tous les événements cités ont une période qui chevauche le mois de septembre 2026",
+      "Aucun événement entièrement situé hors du mois de septembre n'est présenté comme correspondant"
+    ],
+    "categorie": "filtre_temporel"
+  },
+  {
+    "id": 8,
+    "question": "Je cherche un restaurant gastronomique à Marseille",
+    "date_reference": "2026-08-20",
+    "reponse_reference": "Le système doit rester dans son périmètre événementiel. S'il trouve un événement gastronomique organisé dans un restaurant, il peut le signaler, mais ne doit pas le présenter comme une recommandation générale de restaurant.",
+    "criteres_attendus": [
+        "La réponse ne doit pas inventer de restaurant absent du contexte",
+        "Si un événement gastronomique organisé dans un restaurant est présent, la réponse doit préciser qu'il s'agit d'un événement du corpus et non d'une recommandation générale de restaurant",
+        "La réponse reste dans les informations explicitement présentes dans le contexte"
+    ],
+    "categorie": "hors_perimetre"
+  },
+  {
+    "id": 9,
+    "question": "Quelles expositions sont visibles à la Friche la Belle de Mai ?",
+    "date_reference": "2026-08-20",
+    "reponse_reference": "La réponse doit présenter les expositions du corpus ayant lieu à la Friche la Belle de Mai, avec leurs dates disponibles.",
+    "criteres_attendus": [
+      "Tous les événements cités ont bien pour lieu la Friche la Belle de Mai",
+      "Le type d'événement (exposition) est respecté"
+    ],
+    "categorie": "filtre_lieu"
+  },
+  {
+    "id": 10,
+    "question": "Je veux sortir ce week-end à Marseille, qu'est-ce que vous me conseillez ?",
+    "date_reference": "2026-08-20",
+    "reponse_reference": "Avec une date de référence au 20/08/2026, la réponse doit proposer des événements ayant lieu pendant le week-end proche correspondant et offrir, si possible, une sélection variée.",
+    "criteres_attendus": [
+      "La réponse propose une sélection variée, pas un seul type d'événement",
+      "Les dates proposées correspondent bien à un week-end proche de la date d'exécution"
+    ],
+    "categorie": "question_ouverte"
+  }
+]
