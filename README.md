@@ -1,542 +1,328 @@
-# Projet 11 — Chatbot RAG de recommandation d'événements culturels à Marseille
+# Puls-Events — POC RAG pour la recommandation d'événements culturels à Marseille
 
-## Présentation
+Assistant conversationnel qui répond en langage naturel à des questions sur les événements
+culturels de Marseille, à partir d'une base de données réelle et à jour (OpenAgenda),
+vectorisée et interrogée via une architecture RAG (Retrieval-Augmented Generation).
 
-Ce projet a été réalisé dans le cadre du parcours **Expert en ingénierie des données** d'OpenClassrooms.
-
-L'objectif est de développer un **Proof of Concept (POC) de chatbot RAG** (*Retrieval-Augmented Generation*) capable de recommander des événements culturels à Marseille à partir de données issues d'**OpenAgenda**.
-
-Le système combine :
-
-- la collecte de données depuis OpenAgenda ;
-- le nettoyage et le filtrage des événements ;
-- le découpage conditionnel des textes en chunks ;
-- la génération d'embeddings avec Mistral AI ;
-- l'indexation vectorielle avec FAISS ;
-- la recherche sémantique ;
-- la génération de réponses avec Mistral ;
-- l'orchestration du pipeline RAG avec LangChain.
+> Preuve de concept — Projet 11, formation Data Engineering, OpenClassrooms.
 
 ---
 
-## Architecture du projet
+## Sommaire
 
-Le pipeline principal est le suivant :
+- [Aperçu](#aperçu)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Configuration des clés API](#configuration-des-clés-api)
+- [Reconstruire la base vectorielle](#reconstruire-la-base-vectorielle)
+- [Utilisation du chatbot](#utilisation-du-chatbot)
+- [Lancement des tests](#lancement-des-tests)
+- [Intégration continue](#intégration-continue)
+- [Évaluation du système](#évaluation-du-système)
+- [Structuration du dépôt](#structuration-du-dépôt)
+- [Résultats du POC](#résultats-du-poc)
+- [Documentation complémentaire](#documentation-complémentaire)
 
-```text
-OpenAgenda
-    │
-    ▼
-Collecte multi-sources
-    │
-    ▼
-Prétraitement et filtrage
-    │
-    ▼
-216 événements
-    │
-    ▼
-Chunking conditionnel
-    │
-    ▼
-403 chunks
-    │
-    ▼
-Embeddings Mistral
-    │
-    ▼
-403 vecteurs × 1024 dimensions
-    │
-    ▼
-Index FAISS
-    │
-    ▼
-Retriever LangChain
-    │
-    ▼
-Prompt + Mistral
-    │
-    ▼
-Réponse utilisateur
+---
+
+## Aperçu
+
 ```
-
-Le système sépare volontairement la recherche sémantique de la génération de la réponse.
-
-La question originale de l'utilisateur est envoyée au retriever FAISS. Les informations nécessaires à l'interprétation des expressions temporelles sont ajoutées au niveau du prompt et non à la requête vectorielle afin de ne pas perturber la recherche sémantique.
-
----
-
-## Sources de données
-
-Les événements sont collectés depuis plusieurs agendas OpenAgenda :
-
-- Aix-Marseille-Provence Métropole ;
-- Musées de Marseille ;
-- gmem-CNCM-marseille.
-
-La collecte multi-sources permet d'élargir la couverture du corpus culturel tout en conservant la traçabilité de l'agenda d'origine.
-
-Lors du dernier traitement utilisé pour le POC :
-
-```text
-2 596 événements collectés
-        ↓
-1 261 événements situés à Marseille
-        ↓
-370 événements après filtre métier
-        ↓
-216 événements après filtre temporel
-```
-
-Le corpus final contient donc **216 événements culturels** utilisés pour construire la base vectorielle.
-
----
-
-## Prétraitement des données
-
-Le prétraitement applique notamment :
-
-- un filtrage géographique sur Marseille ;
-- un filtrage métier des agendas non pertinents ;
-- une validation des champs essentiels ;
-- une déduplication des événements ;
-- un filtrage temporel ;
-- une normalisation du contenu textuel ;
-- la conservation des métadonnées utiles au RAG.
-
-La fenêtre temporelle utilisée couvre une période totale de **365 jours** :
-
-- 60 jours dans le passé ;
-- 305 jours dans le futur.
-
-Le filtrage tient compte du chevauchement de la période d'un événement avec cette fenêtre. Un événement ayant commencé avant la date minimale peut donc être conservé s'il est encore en cours pendant la période étudiée.
-
-Les paramètres temporels du prétraitement sont enregistrés afin de rendre les contrôles reproductibles.
-
----
-
-## Chunking
-
-Le découpage des documents est conditionnel.
-
-Les événements courts sont conservés dans un seul document tandis que les textes longs sont découpés en plusieurs chunks.
-
-Paramètres principaux :
-
-```text
-Seuil de découpage : 1 500 caractères
-Taille cible       : environ 800 caractères
-Événements sources : 216
-Événements découpés: 55
-Chunks produits    : 403
-```
-
-Le titre de l'événement est conservé dans les chunks afin de maintenir le contexte lors de la recherche vectorielle.
-
----
-
-## Embeddings
-
-Les représentations vectorielles sont générées avec le modèle :
-
-```text
-mistral-embed
-```
-
-Les chunks sont envoyés à l'API Mistral par lots.
-
-Résultat obtenu :
-
-```text
-Chunks              : 403
-Embeddings           : 403
-Dimension            : 1024
-Nombre de lots       : 21
-```
-
-Les vecteurs sont enregistrés localement avant la construction de l'index FAISS.
-
----
-
-## Base vectorielle FAISS
-
-Les embeddings sont indexés avec **FAISS** afin d'effectuer une recherche par similarité.
-
-La base contient :
-
-```text
-403 vecteurs
-1024 dimensions par vecteur
-```
-
-Les métadonnées associées aux chunks sont sauvegardées séparément.
-
-Lors d'une recherche, la question utilisateur est elle-même transformée en embedding avec Mistral puis comparée aux vecteurs présents dans l'index.
-
-Une déduplication par événement permet d'éviter de retourner plusieurs chunks correspondant au même événement parmi les recommandations finales.
-
----
-
-## Intégration LangChain
-
-LangChain est utilisé pour orchestrer la chaîne RAG.
-
-Un retriever personnalisé basé sur `BaseRetriever` encapsule la recherche FAISS existante.
-
-Les résultats sont transformés en objets `Document`, puis injectés dans une chaîne LCEL comprenant :
-
-```text
 Question utilisateur
-        ↓
-Retriever FAISS
-        ↓
-Documents LangChain
-        ↓
-Construction du contexte
-        ↓
-Prompt
-        ↓
-ChatMistralAI
-        ↓
-StrOutputParser
-        ↓
-Réponse
+    → Embedding Mistral de la question
+    → Recherche par similarité dans FAISS
+    → Déduplication (uid, titre)
+    → Construction du contexte
+    → Génération de la réponse (LangChain + ChatMistralAI)
+    → Réponse fondée sur le contexte, ou refus explicite
 ```
 
-Cette architecture permet de conserver la logique métier développée dans les scripts FAISS tout en bénéficiant de l'orchestration proposée par LangChain.
+Le système s'appuie sur trois briques technologiques principales :
+
+| Brique | Rôle |
+|---|---|
+| **[LangChain](https://python.langchain.com/)** | Orchestration du retriever, du prompt et du modèle de génération |
+| **[Mistral AI](https://mistral.ai/)** | Génération des embeddings (`mistral-embed`) et de la réponse (`mistral-small-latest`) |
+| **[FAISS](https://github.com/facebookresearch/faiss)** | Indexation vectorielle et recherche par similarité cosinus |
+
+Source des données : [OpenAgenda](https://openagenda.com/), via son API officielle
+(`api.openagenda.com`), interrogée sur trois agendas complémentaires couvrant Marseille.
 
 ---
 
-## Structure du dépôt
+## Architecture
 
-```text
-Projet11-RAG/
-│
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   └── evaluation/
-│
-├── docs/
-│
-├── notebooks/
-│
-├── scripts/
-│   ├── fetch_openagenda.py
-│   ├── preprocess_events.py
-│   ├── chunk_events.py
-│   ├── generate_embeddings.py
-│   ├── build_faiss_index.py
-│   ├── search_faiss.py
-│   ├── rag_chain.py
-│   ├── langchain_rag.py
-│   ├── evaluate_rag.py
-│   ├── annoter_evaluation.py
-│   └── resume_evaluation.py
-│
-├── tests/
-│
-├── .env.example
-├── .gitignore
-├── main.py
-├── pytest.ini
-├── README.md
-└── requirements.txt
 ```
+OpenAgenda (3 agendas)
+    │
+    ▼
+fetch_openagenda.py          → collecte brute, pagination, retry
+    │
+    ▼
+preprocess_events.py         → filtrage ville / métier / temporel, nettoyage
+    │
+    ▼
+chunk_events.py              → découpage conditionnel des textes longs
+    │
+    ▼
+generate_embeddings.py       → vectorisation (Mistral, mistral-embed)
+    │
+    ▼
+build_faiss_index.py         → index FAISS (IndexFlatIP, similarité cosinus)
+    │
+    ▼
+langchain_rag.py             → retriever LangChain + prompt + ChatMistralAI
+    │
+    ▼
+Réponse conversationnelle fondée sur le contexte
+```
+
+Chaque étape est un script Python indépendant et rejouable. **La base vectorielle
+entière peut être reconstruite à la demande**, sans dépendance à un état intermédiaire
+non versionné (voir [Reconstruire la base vectorielle](#reconstruire-la-base-vectorielle)).
 
 ---
 
 ## Installation
 
-### 1. Cloner le dépôt
+### Prérequis
+
+- Python 3.13 ou supérieur
+- Un compte [Mistral AI](https://console.mistral.ai) (plan gratuit *Experiment* suffisant)
+- Un compte [OpenAgenda](https://openagenda.com) avec une clé API publique
+
+### Mise en place de l'environnement
 
 ```powershell
-git clone <URL_DU_DEPOT>
-cd Projet11-RAG
-```
+# Cloner le dépôt
+git clone git@github.com:nic2025-g/projet11-rag-puls-events.git
+cd projet11-rag-puls-events
 
-### 2. Créer l'environnement virtuel
-
-```powershell
+# Créer et activer l'environnement virtuel
 python -m venv .venv
-```
+.\.venv\Scripts\Activate.ps1        # Windows PowerShell
+# source .venv/bin/activate         # macOS / Linux
 
-### 3. Activer l'environnement sous PowerShell
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-Le terminal doit alors afficher :
-
-```text
-(.venv) PS C:\...\Projet11-RAG>
-```
-
-### 4. Installer les dépendances
-
-```powershell
-python -m pip install --upgrade pip
+# Installer les dépendances
 pip install -r requirements.txt
 ```
 
 ---
 
-## Configuration des variables d'environnement
+## Configuration des clés API
 
-Le projet utilise l'API Mistral pour générer les embeddings et les réponses du chatbot.
-
-Créer un fichier `.env` à partir du modèle fourni :
+Copier `.env.example` vers `.env`, puis renseigner vos propres clés :
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Puis renseigner les clés nécessaires dans le fichier `.env`.
-
-Exemple :
-
-```env
+```dotenv
 MISTRAL_API_KEY=votre_cle_mistral
+OPENAGENDA_API_KEY=votre_cle_publique_openagenda
 ```
 
-Ne jamais versionner le fichier `.env` contenant les clés réelles.
+- **Clé Mistral** : Console Mistral → *Clés API* → *Créer une clé*.
+- **Clé OpenAgenda** : compte OpenAgenda → paramètres du compte → clé publique.
+
+Le fichier `.env` n'est jamais versionné (voir `.gitignore`).
 
 ---
 
-## Reconstruction du pipeline
+## Reconstruire la base vectorielle
 
-Les différentes étapes peuvent être exécutées successivement.
-
-### 1. Collecter les événements OpenAgenda
+L'ensemble du pipeline est rejouable en une suite de commandes. Chaque script lit la
+sortie du précédent ; aucune étape manuelle n'est nécessaire.
 
 ```powershell
+# 1. Collecte des événements depuis OpenAgenda (3 agendas)
 python scripts\fetch_openagenda.py
-```
 
-### 2. Prétraiter les événements
-
-```powershell
+# 2. Nettoyage, filtrage géographique / métier / temporel
 python scripts\preprocess_events.py
-```
 
-### 3. Générer les chunks
-
-```powershell
+# 3. Découpage conditionnel des textes longs
 python scripts\chunk_events.py
-```
 
-### 4. Générer les embeddings
-
-```powershell
+# 4. Génération des embeddings Mistral
 python scripts\generate_embeddings.py
-```
 
-Cette étape nécessite une connexion Internet et une clé Mistral valide.
-
-### 5. Construire l'index FAISS
-
-```powershell
+# 5. Construction de l'index FAISS
 python scripts\build_faiss_index.py
 ```
 
-Après ces étapes, la base vectorielle est prête pour les recherches.
+À l'issue de ces cinq étapes, `faiss_index/` contient l'index et ses métadonnées,
+prêts à être interrogés. Le volume final varie d'une exécution à l'autre : OpenAgenda
+est une source vivante (nouveaux événements publiés, anciens expirés).
 
 ---
 
-## Tester la recherche FAISS
+## Utiliser le chatbot
 
-Une recherche sémantique peut être lancée directement depuis PowerShell :
+En ligne de commande, avec la chaîne LangChain complète :
 
 ```powershell
-python scripts\search_faiss.py "exposition d'art contemporain à Marseille"
+python scripts\langchain_rag.py "Je cherche une exposition gratuite à Marseille"
 ```
 
-Le script génère l'embedding de la requête, interroge FAISS puis affiche les événements les plus similaires.
-
----
-
-## Lancer la chaîne RAG
-
-La version RAG sans orchestration LangChain peut être testée avec :
+Sans argument, une question par défaut est utilisée :
 
 ```powershell
-python scripts\rag_chain.py "Je cherche une exposition d'art contemporain à Marseille"
+python scripts\langchain_rag.py
 ```
 
-Le système :
-
-1. recherche les événements pertinents ;
-2. construit le contexte ;
-3. transmet le contexte et la question à Mistral ;
-4. affiche la réponse générée.
-
----
-
-## Lancer la version LangChain
-
-La chaîne RAG intégrée à LangChain peut être exécutée avec :
+Une version plus simple, sans passer par LangChain (utile pour déboguer le seul
+retrieval FAISS), est disponible via :
 
 ```powershell
-python scripts\langchain_rag.py "Je cherche une exposition d'art contemporain à Marseille"
+python scripts\search_faiss.py "concert de musique en plein air"
 ```
-
-Cette version utilise notamment :
-
-- `BaseRetriever` ;
-- `Document` ;
-- LCEL ;
-- `ChatMistralAI` ;
-- `StrOutputParser`.
 
 ---
 
-## Tests automatisés
-
-Les tests sont exécutés avec `pytest` :
+## Lancer les tests
 
 ```powershell
-pytest
+# Lancer l'ensemble de la suite de tests
+pytest -v
 ```
 
-Lors de la dernière validation du POC :
+La suite compte 33 tests, répartis sur :
 
-```text
-31 tests réussis
-31 / 31
+| Fichier | Portée |
+|---|---|
+| `tests/test_chunking.py` | Découpage conditionnel des textes |
+| `tests/test_embeddings.py` | Génération d'embeddings par lots (client Mistral simulé) |
+| `tests/test_search_faiss.py` | Recherche et déduplication FAISS |
+| `tests/test_rag_chain.py` | Construction du contexte, génération (client simulé) |
+| `tests/test_langchain_rag.py` | Retriever et chaîne LangChain (mocks) |
+| `tests/test_donnees_vectorisees.py` | **Conformité des données réellement indexées** : ville = Marseille, événements de moins d'un an, champs minimaux présents |
+| `tests/test_faiss.py` | Test historique de l'environnement |
+| `tests/test_preprocessing_sample.py` | Contrôle du chargement et du filtrage géographique du pré-processing sur un échantillon OpenAgenda versionné |
+
+Aucun de ces tests n'effectue d'appel réseau réel, à l'exception implicite de
+`test_donnees_vectorisees.py` qui nécessite qu'un index FAISS existe déjà
+(sinon il est automatiquement ignoré — `pytest.skip`).
+
+---
+
+## Intégration continue
+
+Le projet intègre un pipeline CI avec **GitHub Actions**, défini dans
+`.github/workflows/tests.yml`.
+
+Il est déclenché automatiquement :
+
+- lors des `push` sur `main`, `develop` et les branches `feature/**` ;
+- lors des `pull_request` vers `main` ou `develop`.
+
+La CI s'exécute sous Ubuntu avec Python 3.13, installe les dépendances depuis
+`requirements.txt`, puis lance automatiquement :
+
+```powershell
+pytest -v
 ```
 
-Une partie des tests porte spécifiquement sur les données présentes dans la base vectorielle.
+Le resultat contient 33 tests, tous validés en environnement local lorsque
+les artefacts vectoriels ont été reconstruits.
 
-Ils vérifient notamment :
+Dans GitHub Actions, le dernier pipeline valide :
 
-- que la base n'est pas vide ;
-- que les événements concernent Marseille ;
-- que les événements respectent la fenêtre temporelle du prétraitement ;
-- que les champs minimaux nécessaires sont présents.
+- 29 tests réussis ;
+- 4 tests ignorés (skipped).
 
-La fenêtre temporelle utilisée par ces tests est chargée depuis les métadonnées produites lors du prétraitement afin d'éviter qu'un index valide ne devienne artificiellement invalide avec le passage du temps.
+Les quatre tests ignorés correspondent aux contrôles d'intégration de
+tests/test_donnees_vectorisees.py. Ils vérifient les données réellement associées
+à l'index FAISS et nécessitent donc les artefacts locaux faiss_index/ et
+data/processed/, qui sont volontairement non versionnés car entièrement
+régénérables.
 
----
+Afin de conserver un contrôle du pré-processing dans la CI sans dépendre d'API
+externes, tests/test_preprocessing_sample.py utilise l'échantillon versionné
+data/samples/sample_events_raw.json pour vérifier automatiquement le chargement
+des données et le filtrage géographique sur Marseille.
 
-## Évaluation fonctionnelle du RAG
+## Évaluer le système
 
-En complément des tests techniques, le chatbot a été évalué sur **10 scénarios fonctionnels annotés**.
+Un jeu de 10 questions annotées manuellement permet une évaluation quantitative,
+au-delà des tests automatisés :
 
-Les scénarios couvrent notamment :
+```powershell
+# Exécute les 10 scénarios sur la chaîne RAG et sauvegarde les réponses générées
+python scripts\evaluate_rag.py
 
-- le tarif ;
-- la thématique ;
-- le lieu ;
-- le public ;
-- les contraintes temporelles ;
-- le type de lieu ;
-- les demandes hors périmètre ;
-- les questions ouvertes.
+# Complète l'annotation manuelle (critères validés, score) dans le fichier de résultats
+python scripts\annoter_evaluation.py
 
-Une date de référence fixe est utilisée pour rendre les scénarios temporels reproductibles.
-
-### Résultat
-
-```text
-Score moyen d'évaluation manuelle : 91,7 %
-Nombre de scénarios : 10
+# Génère un résumé par catégorie (CSV + affichage console)
+python scripts\resume_evaluation.py
 ```
 
-Ce résultat correspond à une **évaluation manuelle sur le jeu de scénarios du POC**. Il ne doit pas être interprété comme une mesure statistique générale de précision du modèle.
-
-Les principaux cas d'échec ou de réponse partielle concernent :
-
-- certaines expressions temporelles relatives, comme « ce week-end » ;
-- certaines demandes situées hors du périmètre culturel du corpus.
+Fichiers concernés :
+- `data/evaluation/questions_reponses.json` — le jeu de questions et critères de référence
+- `data/evaluation/resultats_evaluation.json` — les réponses générées et leur annotation
+- `data/evaluation/resume_evaluation.csv` — le résumé des scores par catégorie
 
 ---
 
-## Limites actuelles
+## Structure du dépôt
 
-Le POC repose principalement sur une recherche par similarité sémantique.
+```
+projet11-rag-puls-events/
+├── scripts/                 Scripts du pipeline (collecte → RAG)
+├── tests/                   Suite de tests pytest (33 tests)
+├── data/
+│   ├── raw/                 Données brutes OpenAgenda (non versionné, régénérable)
+│   ├── processed/           Données nettoyées, chunks, embeddings (non versionné)
+│   ├── samples/              Échantillon de test versionné
+│   └── evaluation/          Jeu de questions annoté et résultats (versionné)
+├── faiss_index/              Index vectoriel et métadonnées (non versionné, régénérable)
+├── docs/                     Documentation complémentaire
+│
+├── .github/
+│   └── workflows/
+│       └── tests.yml             Pipeline CI GitHub Actions
+├── .env.example               Modèle de configuration des clés API
+├── requirements.txt           Dépendances Python
+└── pytest.ini                 Configuration de la suite de tests
 
-FAISS permet d'identifier des événements proches du sens de la question, mais ne garantit pas à lui seul le respect exact de contraintes structurées comme :
-
-```text
-date précise
-gratuité
-public enfant
-lieu
-type d'événement
-plein air
 ```
 
-L'interprétation des expressions temporelles relatives par le LLM peut également produire des erreurs.
-
-Enfin, le corpus dépend de la disponibilité et de la qualité des événements publiés dans les agendas OpenAgenda sélectionnés.
-
----
-
-## Perspectives d'amélioration
-
-Une évolution importante consisterait à mettre en place une **recherche hybride** :
-
-```text
-Question utilisateur
-        ↓
-Analyse des contraintes
-        ↓
-Filtres sur les métadonnées
-        +
-Recherche sémantique FAISS
-        ↓
-Événements candidats
-        ↓
-Génération de la réponse
-```
-
-Les principales améliorations envisagées sont :
-
-- filtrage déterministe des dates ;
-- résolution en Python des expressions comme « demain » ou « ce week-end » ;
-- filtrage par lieu, public, tarif ou type d'événement ;
-- détection des demandes hors périmètre ;
-- automatisation du rafraîchissement du corpus ;
-- augmentation du nombre de sources OpenAgenda ;
-- enrichissement du jeu d'évaluation.
+Les fichiers volumineux et entièrement régénérables (données brutes, embeddings,
+index FAISS) sont exclus du suivi Git — voir `.gitignore`. Seuls le code, la
+configuration et les artefacts d'évaluation (rédigés à la main) sont versionnés.
 
 ---
 
-## Résultats principaux
+## Résultats du POC
 
-Le POC final permet de construire une chaîne RAG complète et reproductible à partir de données culturelles réelles.
+| Indicateur | Valeur |
+|---|---|
+| Agendas OpenAgenda interrogés | 3 |
+| Événements retenus après filtrage | ~216 (variable selon la date de collecte) |
+| Chunks vectorisés | ~403 |
+| Dimension des embeddings | 1024 (`mistral-embed`) |
+| Tests automatisés en local| 33 / 33 réussis |
+| CI GitHub Actions | 29 réussis / 4 ignorés |
+| Score d'évaluation (10 scénarios annotés) | 91,7 % |
 
-| Indicateur | Résultat |
-|---|---:|
-| Événements collectés | 2 596 |
-| Événements finaux | 216 |
-| Chunks | 403 |
-| Dimension des embeddings | 1024 |
-| Vecteurs FAISS | 403 |
-| Tests automatisés | 31 / 31 |
-| Scénarios d'évaluation | 10 |
-| Score moyen d'évaluation manuelle | 91,7 % |
-
----
-
-## Technologies utilisées
-
-- Python 3
-- OpenAgenda API
-- Pandas
-- NumPy
-- Mistral AI
-- FAISS
-- LangChain
-- Pytest
-- python-dotenv
-- Git / GitHub
+Détail complet, choix techniques, limites identifiées et recommandations pour une
+version de production : voir le rapport technique.
 
 ---
 
-## Auteur
+## Documentation complémentaire
 
-**Nicolas Bamania**
+- **Rapport technique** — architecture détaillée, choix techniques, résultats,
+  limites et recommandations (`rapport_technique.docx`).
+- **Présentation** — support de soutenance (`puls_events.pptx`).
+- **Journaux de bord** — trace détaillée de chaque étape de développement, incidents
+  rencontrés et corrigés (dossier `docs/`, non versionné — conservés en local).
 
-Projet réalisé dans le cadre de la formation **Expert en ingénierie des données — OpenClassrooms**.
+---
+
+## Licence et cadre
+
+Projet réalisé dans le cadre de la formation Data Engineering d'OpenClassrooms.
+Les données utilisées proviennent d'OpenAgenda et restent soumises à leurs conditions
+d'utilisation respectives.
