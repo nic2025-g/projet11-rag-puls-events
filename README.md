@@ -111,15 +111,15 @@ pip install -r requirements.txt
 
 ## Configuration des clés API
 
-Copier `.env.example` vers `.env`, puis renseigner vos propres clés :
+Copier `.env.example` vers `.env`, puis renseigner mes propres clés :
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
 ```dotenv
-MISTRAL_API_KEY=votre_cle_mistral
-OPENAGENDA_API_KEY=votre_cle_publique_openagenda
+MISTRAL_API_KEY=ma_cle_mistral
+OPENAGENDA_API_KEY=ma_cle_publique_openagenda
 ```
 
 - **Clé Mistral** : Console Mistral → *Clés API* → *Créer une clé*.
