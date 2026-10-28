@@ -157,9 +157,51 @@ est une source vivante (nouveaux événements publiés, anciens expirés).
 
 ---
 
+
 ## Utiliser le chatbot
 
-En ligne de commande, avec la chaîne LangChain complète :
+Puls-Events propose deux modes d'utilisation : une interface Web destinée
+aux utilisateurs et une interface en ligne de commande pour les développeurs.
+
+### Interface Web avec Streamlit
+
+Depuis la racine du projet, avec l'environnement virtuel activé :
+
+```powershell
+python -m streamlit run app.py
+```
+
+Ouvrir ensuite l'adresse suivante dans un navigateur :
+
+http://localhost:8501
+
+L'utilisateur peut saisir directement une question, par exemple :
+
+> Je cherche une exposition gratuite à Marseille.
+
+L'application interroge la chaîne RAG LangChain, qui utilise FAISS
+pour retrouver les événements pertinents et Mistral pour générer une réponse.
+
+**Mode de secours :** si l'API de génération Mistral renvoie une erreur
+HTTP 429, l'application tente d'afficher jusqu'à cinq événements
+récupérés par FAISS.
+
+Ces résultats sont présentés avec leur titre, leur lieu, leurs dates
+et leur description. Les événements déjà terminés sont exclus de cet
+affichage de secours.
+
+**Limites :**
+- La similarité sémantique ne garantit pas le respect de toutes les
+  contraintes de la question, notamment la gratuité.
+- Le filtrage temporel du mode de secours porte sur les candidats
+  récupérés par FAISS, et non sur l'ensemble de la base vectorielle.
+- Le mode de secours nécessite toujours l'accès à l'API d'embeddings Mistral.
+- L'interface ne remplace pas le service de génération lorsque celui-ci
+  est indisponible.
+
+### Utilisation en ligne de commande
+
+Exécuter la chaîne RAG LangChain complète :
 
 ```powershell
 python scripts\langchain_rag.py "Je cherche une exposition gratuite à Marseille"
@@ -171,12 +213,14 @@ Sans argument, une question par défaut est utilisée :
 python scripts\langchain_rag.py
 ```
 
-Une version plus simple, sans passer par LangChain (utile pour déboguer le seul
-retrieval FAISS), est disponible via :
+Pour tester uniquement la recherche vectorielle FAISS :
 
 ```powershell
 python scripts\search_faiss.py "concert de musique en plein air"
 ```
+
+Ce dernier mode est particulièrement utile pour diagnostiquer la
+recherche sémantique indépendamment de la génération de texte.
 
 ---
 
